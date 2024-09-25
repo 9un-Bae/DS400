@@ -122,3 +122,5 @@ $$
 
 If there's two positive results, the Bayes theorem goes from 9% to 91%.\
 This shows that repeated independent evidence increases the diagnosis by a lot.
+
+Finished
