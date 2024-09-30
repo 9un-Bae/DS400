@@ -85,7 +85,19 @@ df <- df %>%
 2.  Do some exploratory data analysis
 
     ```{r}
+    str(df)
+    ```
 
+    ```{r}
+    summary(df)
+    ```
+
+    ```{r}
+    unique(df)
+    ```
+
+    ```{r}
+    head(df)
     ```
 
 3.  Determine the prior probability that someone has diabetes (DIQ010)
@@ -93,11 +105,13 @@ df <- df %>%
     -   P(B)
 
     ```{r}
-    (prior_prob_x_has_diabetes)
-
-    df %>%
-      tabyl(DIQ010) %>%x
+    df %>% 
+      tabyl(DIQ010) %>% 
       adorn_totals("row")
+    ```
+
+    ```{r}
+    prior_prob_diabetes <- 0.1287
     ```
 
 4.  Determine the prior probability that someone eats tuna (DRD370B)
@@ -105,100 +119,94 @@ df <- df %>%
     -   P(A)
 
     ```{r}
-    (prior_prob_x_eats_tuna)
-
-    df %>%
-      tabyl(DRD370B) %>%
+    df %>% 
+      tabyl(DRD370B) %>% 
       adorn_totals("row")
+    ```
+
+    ```{r}
+    prior_prob_tuna <- 0.3609
     ```
 
 5.  Determine the likelihood of eating tuna and having diabetes
 
-    -   L(B\|A)
+    -   L(B\|A) = P(A\|B)
 
     ```{r}
-    df %>%
-      tabyl(DRD370B,DIQ010) %>%
-      adorn_percentages("col")
+    df %>% 
+      tabyl(DRD370B, DIQ010) %>% 
+    ```
+
+    ```{r}
+    likelihood_tuna_diabetes <- 0.3584
+    ```
+
+    ```{adorn_percentages("col")}
     ```
 
 6.  Determine posterior probability via Bayes theorem
 
     -   P(B\|A)
+    -   P(B\|A) = P(B)LP(B\|A) / P(A)
 
     ```{r}
-    (prior_prob_x_has_diabetes * likelihood) / prior_prob_x_eats_tuna
+    (prior_prob_diabetes*likelihood_tuna_diabetes) / prior_prob_tuna
     ```
+
+    Both are independent variables as there isn't much difference between P(B\|A)
 
 7.  What other questions can we ask of this data?
 
-## Bayes Theorem
+    ```{r}
+    demo_df <- select(demographics, SEQN, RIAGENDR, DMDHHSZA, DMDHHSZB, DMDHHSZE, DMDHRGND, INDFMPIR)
+    demo_df <- list(demo_df, tiid)
+    demo_df <- demo_df %>% reduce(full_join, by = 'SEQN')
 
-$$
-P(B \mid A) = \frac{P(B) L(B \mid A)}{P(A)}
-$$
+    ```
 
-B \<- Has Diabetes
+    ```{r}
+    demo_df <- demo_df %>%
+      filter(!is.na(DIQ010), !is.na(RIAGENDR)) %>%
+      filter(DIQ010 %in% c(1, 2), RIAGENDR %in% c(1, 2)) %>%
+      mutate(
+        DIQ010 = ifelse(DIQ010 == 1, "Has Diabetes", "No Diabetes"),
+        RIAGENDR = ifelse(RIAGENDR == 1, "Male", "Female")
+      )
+    ```
 
-A \<- Consumes Ahi
+    ```{r}
+    ggplot(data = demo_df, aes(x = DIQ010, fill = RIAGENDR)) +
+      geom_bar()
+    ```
 
-### P(B)
+    ```{r}
+    demo_df %>% 
+      tabyl(RIAGENDR) %>% 
+      adorn_totals("row")
+    ```
 
-The probability that a person has diabetes
+    ```{r}
+    prior_prob_male <- 0.4912
+    ```
 
-```{r}
-df %>%
-  tabyl(DIQ010)
-```
+    ```{r}
+    demo_df %>% 
+      tabyl(DIQ010, RIAGENDR) %>% 
+      adorn_percentages("col") 
+    ```
 
-## L(B\|A) = P(A\|B)
+    ```{r}
+    likelihood_diabetes_male <- 0.113
+    ```
 
-```{r}
-df %>%
-  tabyl(DRD370B, DIQ010) %>%
-  adorn_percentages("col")
-```
+    ```{r}
+    (prior_prob_diabetes * likelihood_diabetes_male) / prior_prob_male
+    ```
 
-```{r}
-nhanes_percent <- df %>%
-  tabyl(DIQ010, DRD370B) %>%
-  adorn_percentages("row")
-```
-
-```{r}
-nhanes_long <- nhanes_percent %>%
-  pivot_longer(cols = -DIQ010, names_to = "DRD370B", values_to = "percentage")
-```
-
-```{r}
-ggplot(nhanes_long, aes(x = DIQ010, y = percentage, fill = DRD370B)) +
-  geom_bar(stat = "identity", position = "fill") +
-  geom_text(aes(label = percent(percentage, accuracy = 0.1)), 
-            position = position_fill(vjust = 0.5)) +
-  scale_y_continuous(labels = percent_format()) +
-  labs(y = "Percentage", x = "Diabetes", fill = "Ahi Consumption") +
-  theme_minimal()
-```
-
-## P(A)
+## Diabetes and Age
 
 ```{r}
-df %>% 
-  tabyl(DRD370B)
-```
-
-### P(B\|A)
-
-```{r}
-(probability_has_diabetes * probability_consumes_ahi_given_diabetes) / probability_consumes_ahi
-```
-
-### P(B\|A)
-
-## Diabetes & Age
-
-```{r}
-demographics <- demographics %>%
+demographics <- demographics %>% 
   select(SEQN, RIDRETH1, RIAGENDR, RIDAGEYR)
 ```
 
@@ -207,16 +215,52 @@ nhanes_data <- left_join(df, demographics, by = "SEQN")
 ```
 
 ```{r}
-nhanes_data <- nhanes_data %>%
+nhanes_data <- nhanes_data %>% 
   mutate(age_bracket = ifelse(RIDAGEYR > 40, "old", "young"))
 ```
 
+### Bayes Theorem - Diabetes and Age
+
 ```{r}
-ggplot(nhanes_data, aes(x = RIDAGEYR, fill = DIQ010)) + geom_density(alpha = 0.5)
+print(prior_prob_diabetes) #P(B)
 ```
 
-### P(B\|A)
+P(A)
 
-B \<- Has Diabetes
+```{r}
+nhanes_data %>% 
+  tabyl(age_bracket) %>% 
+  adorn_totals("row")
+```
 
-A \<- old, over 40
+```{r}
+prior_prob_old <- 0.534
+```
+
+L(B\|A) = P(A\|B)
+
+```{r}
+nhanes_data %>% 
+  tabyl(age_bracket, DIQ010) %>% 
+  adorn_percentages("col")
+```
+
+```{r}
+likelihood_age_diabetes <- 0.955
+```
+
+P(B\|A)
+
+-   P(B\|A) = P(B)LP(B/A) / P(A)
+
+```{r}
+(prior_prob_diabetes*likelihood_age_diabetes) / prior_prob_old
+```
+
+Getting P(B\|A) w/the function
+
+```{r}
+nhanes_data %>% 
+   tabyl(DIQ010, age_bracket) %>% 
+   adorn_percentages("col")
+```

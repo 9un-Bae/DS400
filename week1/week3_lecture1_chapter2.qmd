@@ -34,18 +34,9 @@ skim(fake_news)
 💻 📈 Take 10 minutes to do some some exploratory data analysis below and we will chat about best practices. Keep in mind two variables that we will focus on, type and title_has_exc
 
 ```{r}
-unique(fake_news$type)
-unique(fake_news$title_has_excl)
-
-```
-
-```{r}
-fake_news_limited <- fake_news %>% 
-  select(title_has_excl, type)
-
-fake_news_limited <- fake_news_limited %>% 
-  group_by_all() %>% 
-  count()
+eda <- fake_news %>% select(type, title_has_excl)
+eda <- eda %>% group_by_all %>% count # getting the count of each category
+eda$category <- paste(eda$type, eda$title_has_excl) # creating a new column w/the two columns combined
 ```
 
 ```{r}
@@ -79,7 +70,6 @@ Percent of articles fake vs real
 fake_news %>% 
   tabyl(type) %>% 
   adorn_totals("row")
-
 ```
 
 P(B) = 0.40
@@ -199,6 +189,40 @@ Exploratory Analysis
 ```{r}
 ggplot(data = pop_vs_soda, aes(x = region, fill = pop)) +
   geom_bar()
+```
+
+```{r}
+pop_vs_soda %>% 
+  tabyl(pop) %>% 
+  adorn_totals("row")
+```
+
+```{r}
+prior_probability_pop_true <- 0.37
+```
+
+```{r}
+pop_vs_soda %>% 
+  tabyl(region) %>% 
+  adorn_totals("row")
+```
+
+```{r}
+prior_probability_region_south <- 0.24
+```
+
+```{r}
+pop_vs_soda %>% 
+  tabyl(pop, region) %>% 
+  adorn_percentages("col") 
+```
+
+```{r}
+likelihood_south_pop <- 0.07
+```
+
+```{r}
+(prior_probability_region_south * likelihood_south_pop) / prior_probability_pop_true
 ```
 
 Prior Probability
