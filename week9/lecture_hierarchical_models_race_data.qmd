@@ -70,6 +70,7 @@ We’ll begin our analysis of the relationship between running time and age usin
 ```{r}
 ggplot(running, aes(y = net, x = age)) + 
   geom_point()
+
 ```
 
 Boxplot
@@ -112,7 +113,10 @@ Having failed with our complete pooled model, let’s swing to the other extreme
 Histogram with age on x as factor and net on y
 
 ```{r}
-
+ggplot(running, aes(x = age, y = net)) +
+  geom_bar(stat = "identity", fill = "skyblue", color = "black") +
+  labs(title = "Net Time by Age", x = "Age", y = "Net Time") +
+  theme_minimal()
 ```
 
 Connect each runner age and net time point with a line
