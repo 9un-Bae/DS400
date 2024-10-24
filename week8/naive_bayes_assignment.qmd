@@ -83,10 +83,6 @@ naive_model_hints
 ```
 
 ```{r}
-model <- fake_news %>%
-```
-
-```{r}
 test_data <- data.frame(
   title_words = 15,
   negative = 0.06,        
@@ -95,7 +91,7 @@ test_data <- data.frame(
 ```
 
 ```{r}
-posterior_probability <- predict(model, test_data, type = "raw")  
+posterior_probability <- predict(naive_model_hints, test_data, type = "raw")  
 
 posterior_probability
 ```
@@ -104,8 +100,7 @@ posterior_probability
 posterior_probability_real <- 0.6360158
 ```
 
-```{naiveBayes(type ~ title_words + negative + title_has_excl, data = .)}
-```
+`{naiveBayes(type ~ title_words + negative + title_has_excl, data = .)}`
 
 ### Break Down the Model - 5 points
 
